@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 860ad820f056fa449fc8d2f5f615cbfa2d49547df815057d8d140b8132fe2870
+-- hash: e0368ce39168da868183c53e6e00d08663430b81ce2f3215298f5b3b6521cbb7
 
 name:           projetoPFL
 version:        0.1.0.0
@@ -34,9 +34,7 @@ library
       src
   build-depends:
       base >=4.7 && <5
-    , bytestring
-    , http-conduit
-    , tagsoup
+    , random
   default-language: Haskell2010
 
 executable projetoPFL-exe
@@ -48,10 +46,8 @@ executable projetoPFL-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
-    , bytestring
-    , http-conduit
     , projetoPFL
-    , tagsoup
+    , random
   default-language: Haskell2010
 
 test-suite projetoPFL-test
@@ -64,8 +60,6 @@ test-suite projetoPFL-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
-    , bytestring
-    , http-conduit
     , projetoPFL
-    , tagsoup
+    , random
   default-language: Haskell2010
