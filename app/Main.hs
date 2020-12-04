@@ -2,8 +2,8 @@ import Data.List     (elemIndices, intercalate, transpose)
 import System.IO     (BufferMode(..), hSetBuffering, stdin)
 import System.Random (randomRIO)
 
--- Each inner list is a row, starting with the top row
--- A 0 is an empty tile
+-- cada lista interna é uma linha
+-- um 0 é um elemento vazio
 type Board = [[Int]]
 
 data Direction = North | East | South | West
@@ -14,7 +14,7 @@ slideLeft = map slideRow
         slideRow [x] = [x]
         slideRow (x:y:zs)
           | x == 0 = slideRow (y : zs) ++ [0]
-          | y == 0 = slideRow (x : zs) ++ [0] -- So that things will combine when 0's are between them
+          | y == 0 = slideRow (x : zs) ++ [0] -- pras coisas combinarem quando tiver zeros entre elas
           | x == y = (x + y) : slideRow zs ++ [0]
           | otherwise = x : slideRow (y : zs)
 
@@ -24,11 +24,11 @@ slide East  = map reverse . slideLeft . map reverse
 slide South = transpose . map reverse . slideLeft . map reverse . transpose
 slide West  = slideLeft
 
--- Tells us if the player won the game by getting a 2048 tile
+-- checa se o player ganhou
 completed :: Board -> Bool
 completed b = any (elem 2048) b
 
--- Tells us if the game is over because there are no valid moves left
+-- checa se o jogo acabou por falta de movimento
 stalled :: Board -> Bool
 stalled b = all stalled' b && all stalled' (transpose b)
   where stalled' row = notElem 0 row && noNeighbors row
@@ -38,18 +38,18 @@ stalled b = all stalled' b && all stalled' (transpose b)
           | x == y    = False
           | otherwise = noNeighbors (y:zs)
 
--- Returns tuples of the indices of all of the empty tiles
+-- espaços vazios
 emptyTiles :: Board -> [(Int, Int)]
 emptyTiles = concatMap (uncurry search) . zip [0..3]
   where search n = zip (replicate 4 n) . elemIndices 0
 
--- Given a point, update replaces the value at the point on the board with the given value
+-- substitui um elemento
 updateTile :: (Int, Int) -> Int -> Board -> Board
 updateTile (rowI, columnI) value = updateIndex (updateIndex (const value) columnI) rowI
   where updateIndex fn i list = take i list ++ fn (head $ drop i list) : tail (drop i list)
 
--- Adds a tile to a random empty spot.
--- 90% of the time the tile is a 2, 10% of the time it is a 4
+-- coloca um elemento num espaço vazio
+-- maioria das vezes é um 2, um pouco das vezes é um 4
 addTile :: Board -> IO Board
 addTile b = do
   let tiles = emptyTiles b
@@ -57,7 +57,7 @@ addTile b = do
   newValue <- randomRIO (1, 10 :: Int) >>= return . \x -> if x == 1 then 4 else 2
   return $ updateTile newPoint newValue b
 
--- Our main game loop
+-- game loop principal
 gameloop :: Board -> IO ()
 gameloop b = do
     putStrLn "---------------------"
@@ -69,13 +69,13 @@ gameloop b = do
             then putStrLn "You won!"
             else do
               input <- getChar
-              putStrLn "" -- So that the board is correctly aligned next time we print it
+              putStrLn "" -- alinhamento
               let b1 = maybe b (`slide` b) $ lookup input $ zip "wasd" [North, West, South, East]
-              if b1 == b -- Only add a new tile if we made a change when sliding
+              if b1 == b -- título
                   then gameloop b1
                   else addTile b1 >>= gameloop
 
--- Board pretty printing
+-- imprime o tabuleiro
 boardToString :: Board -> String
 boardToString = init . unlines . map (vertical . map (pad . showSpecial))
   where vertical = ('|' :) . (++ "|") . intercalate "|"
@@ -88,5 +88,5 @@ main :: IO ()
 main = do
     hSetBuffering stdin NoBuffering
     let board = replicate 4 (replicate 4 0)
-    b1 <- addTile board >>= addTile -- Add two tiles randomly and start the game!
+    b1 <- addTile board >>= addTile -- coloca dois elementos no começo
     gameloop b1
